@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Malla curricular – Medicina Matemáticas</title>
+  <style>
+    :root{
+      --bg:#f7f7fb;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --blue:#cfe8ff;       /* Fundamentación */
+      --green:#d9f2d9;      /* Disciplinar */
+      --yellow:#fff6bf;     /* Libre elección */
+      --card:#ffffff;
+      --accent:#4f46e5;
+      --ok:#10b981;
+      --border:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background:var(--bg); color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:10; backdrop-filter:saturate(180%) blur(8px);
+      background:linear-gradient(180deg, rgba(247,247,251,.9), rgba(247,247,251,.6));
+      border-bottom:1px solid var(--border);
+    }
+    .wrap{max-width:1200px; margin:0 auto; padding:16px 20px}
+    .title{display:flex; gap:14px; align-items:center; flex-wrap:wrap}
+    h1{font-size:22px; margin:0}
+    .legend{display:flex; gap:10px; flex-wrap:wrap; font-size:13px; color:var(--muted)}
+    .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:var(--card); border:1px solid var(--border)}
+    .dot{width:12px; height:12px; border-radius:999px; display:inline-block}
+    .dot.blue{background:var(--blue); border:1px solid #9dc9ff}
+    .dot.green{background:var(--green); border:1px solid #a7e0a7}
+    .dot.yellow{background:var(--yellow); border:1px solid #f2e18a}
+
+    .controls{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    button{
+      background:var(--card); border:1px solid var(--border); color:var(--text);
+      border-radius:10px; padding:8px 12px; cursor:pointer; font-weight:600;
+      transition:transform .05s ease, box-shadow .2s ease; box-shadow:0 1px 0 rgba(0,0,0,.03)
+    }
+    button:hover{box-shadow:0 4px 14px rgba(0,0,0,.08)}
+    button:active{transform:translateY(1px)}
+    .danger{border-color:#fecaca; background:#fff1f2; color:#b91c1c}
+
+    .progress{display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; font-size:13px; color:var(--muted)}
+    .progress strong{color:var(--text)}
+
+    main{padding:16px 20px}
+    .grid{
+      display:grid; gap:16px; align-items:start;
+      grid-template-columns: repeat(9, minmax(240px, 1fr));
+      overflow-x:auto; padding-bottom:12px;
+    }
+    .sem{
+      background:var(--card); border:1px solid var(--border); border-radius:16px; padding:12px;
+      box-shadow:0 1px 0 rgba(0,0,0,.03)
+    }
+    .sem h2{font-size:16px; margin:2px 0 10px 0; color:#111827}
+    .course{
+      position:relative; border-radius:14px; padding:10px 12px; margin:10px 0; border:1px solid var(--border);
+      background:var(--card); cursor:pointer; transition:box-shadow .2s ease, transform .05s ease;
+    }
+    .course:hover{box-shadow:0 6px 20px rgba(0,0,0,.08)}
+    .course:active{transform:translateY(1px)}
+
+    .course[data-area="fund"]{background:var(--blue)}
+    .course[data-area="disc"]{background:var(--green)}
+    .course[data-area="libre"]{background:var(--yellow)}
+
+    .course .name{font-weight:700; font-size:14px; line-height:1.25}
+    .meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; font-size:12px; color:#374151}
+    .badge{padding:2px 8px; border-radius:999px; border:1px dashed rgba(0,0,0,.15); background:rgba(255,255,255,.45)}
+
+    .course.done{opacity:.55}
+    .course.done .check{opacity:1; transform:scale(1)}
+    .check{
+      position:absolute; right:8px; top:8px; width:22px; height:22px; border-radius:999px;
+      background:var(--ok); color:white; display:grid; place-items:center; font-weight:900; font-size:14px;
+      box-shadow:0 2px 8px rgba(16,185,129,.4); opacity:0; transform:scale(.8); transition:all .2s ease;
+    }
+
+    footer{padding:18px 20px; color:var(--muted); font-size:12px}
+    .small{font-size:12px; color:var(--muted)}
+
+    /* Scrollbar styling for nicer UX */
+    ::-webkit-scrollbar{height:10px}
+    ::-webkit-scrollbar-thumb{background:#d1d5db; border-radius:999px}
+    ::-webkit-scrollbar-track{background:#eef2f7}
+
+    @media (max-width: 1100px){
+      .grid{grid-template-columns: repeat(9, 280px)}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="title">
+        <h1>Malla curricular • Medicina Matemáticas</h1>
+        <div class="legend">
+          <span class="pill"><span class="dot blue"></span>Fundamentación</span>
+          <span class="pill"><span class="dot green"></span>Disciplinar</span>
+          <span class="pill"><span class="dot yellow"></span>Libre elección</span>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="btn-export">Exportar progreso</button>
+        <button id="btn-import">Importar progreso</button>
+        <button id="btn-reset" class="danger">Borrar progreso</button>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid" id="grid"></div>
+  </main>
+
+  <footer class="wrap small">
+    Haz clic en una materia para marcarla como aprobada (se guarda automáticamente en este navegador). 
+  </footer>
+
+<script>
+(function(){
+  const STORAGE_KEY = 'mallaMedMat_v1';
+
+  /** Estructura base de la malla (semestre, nombre, créditos, área, tipo) **/
+  const data = [
+    {sem:1, name:'Fundamentos de matemáticas', cr:4, area:'fund', tipo:'Obligatoria'},
+    {sem:1, name:'Cálculo diferencial en una variable', cr:4, area:'fund', tipo:'Obligatoria'},
+    {sem:1, name:'Geometría Elemental', cr:4, area:'fund', tipo:'Obligatoria'},
+
+    {sem:2, name:'Álgebra Lineal Básica', cr:4, area:'fund', tipo:'Obligatoria'},
+    {sem:2, name:'Cálculo integral en una variable', cr:4, area:'fund', tipo:'Obligatoria'},
+    {sem:2, name:'Sistemas Numéricos', cr:4, area:'fund', tipo:'Obligatoria'},
+    {sem:2, name:'Programación y métodos numéricos', cr:4, area:'fund', tipo:'Obligatoria'},
+
+    {sem:3, name:'Introducción a la teoría de conjuntos', cr:4, area:'fund', tipo:'Obligatoria'},
+    {sem:3, name:'Cálculo vectorial', cr:4, area:'fund', tipo:'Obligatoria'},
+    {sem:3, name:'Libre elección', cr:4, area:'libre', tipo:'Libre elección'},
+    {sem:3, name:'Mecánica newtoniana', cr:4, area:'fund', tipo:'Obligatoria'},
+
+    {sem:4, name:'Cálculo de ecuaciones diferenciales ordinarias', cr:4, area:'fund', tipo:'Obligatoria'},
+    {sem:4, name:'Introducción al análisis real', cr:4, area:'disc', tipo:'Obligatoria'},
+    {sem:4, name:'Probabilidad', cr:4, area:'fund', tipo:'Obligatoria'},
+    {sem:4, name:'Optativa - Fundamentación en física', cr:4, area:'fund', tipo:'Optativa'},
+
+    {sem:5, name:'Grupos y Anillos', cr:4, area:'disc', tipo:'Obligatoria'},
+    {sem:5, name:'Integración y series', cr:4, area:'disc', tipo:'Obligatoria'},
+    {sem:5, name:'Topología general', cr:4, area:'disc', tipo:'Obligatoria'},
+    {sem:5, name:'Análisis numérico 1', cr:4, area:'disc', tipo:'Obligatoria'},
+
+    {sem:6, name:'Álgebra multilineal y formas canónicas', cr:4, area:'disc', tipo:'Obligatoria'},
+    {sem:6, name:'Análisis vectorial', cr:4, area:'disc', tipo:'Obligatoria'},
+    {sem:6, name:'Lógica matemática', cr:4, area:'disc', tipo:'Obligatoria'},
+    {sem:6, name:'Libre elección', cr:4, area:'libre', tipo:'Libre elección'},
+
+    {sem:7, name:'Teoría de cuerpos', cr:4, area:'disc', tipo:'Obligatoria'},
+    {sem:7, name:'Libre elección', cr:4, area:'libre', tipo:'Libre elección'},
+    {sem:7, name:'Variable compleja', cr:4, area:'disc', tipo:'Obligatoria'},
+    {sem:7, name:'Optativa - Disciplinar 1', cr:4, area:'disc', tipo:'Optativa'},
+
+    {sem:8, name:'Libre elección', cr:4, area:'libre', tipo:'Libre elección'},
+    {sem:8, name:'Optativa - Disciplinar 2', cr:4, area:'disc', tipo:'Optativa'},
+    {sem:8, name:'Optativa - Disciplinar 3', cr:4, area:'disc', tipo:'Optativa'},
+    {sem:8, name:'Libre elección', cr:4, area:'libre', tipo:'Libre elección'},
+
+    {sem:9, name:'Trabajo de grado', cr:8, area:'disc', tipo:'Obligatoria'},
+    {sem:9, name:'Libre elección', cr:4, area:'libre', tipo:'Libre elección'},
+    {sem:9, name:'Libre elección', cr:4, area:'libre', tipo:'Libre elección'},
+  ].map((c, i)=> ({ id:`S${c.sem}-${String(i+1).padStart(2,'0')}-${c.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'-')}`.toLowerCase(), ...c }));
+
+  // Persistencia
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+  // Estado: id -> true/false
+  const state = { ...saved };
+
+  // Construcción del grid
+  const grid = document.getElementById('grid');
+  const semesters = [...new Set(data.map(c=>c.sem))];
+
+  semesters.forEach(sem =>{
+    const col = document.createElement('section'); col.className='sem';
+    col.innerHTML = `<h2>Semestre ${sem}</h2>`;
+    data.filter(c=>c.sem===sem).forEach(course=>{
+      const el = document.createElement('article');
+      el.className = 'course';
+      el.dataset.area = course.area;
+      el.id = course.id;
+      el.innerHTML = `
+        <div class="name">${course.name}</div>
+        <div class="meta">
+          <span class="badge">${course.cr} créditos</span>
+          <span class="badge">${labelArea(course.area)} ${course.tipo!=='Obligatoria' ? '• '+course.tipo : ''}</span>
+        </div>
+        <div class="check">✓</div>
+      `;
+      el.addEventListener('click', ()=>{
+        const v = !state[course.id];
+        state[course.id] = v;
+        el.classList.toggle('done', v);
+        save();
+        renderProgress();
+      });
+      if(state[course.id]) el.classList.add('done');
+      col.appendChild(el);
+    });
+    grid.appendChild(col);
+  });
+
+  function labelArea(a){
+    return a==='fund' ? 'Fundamentación' : a==='disc' ? 'Disciplinar' : 'Libre elección';
+  }
+
+  // Resumen de progreso
+  function renderProgress(){
+    const total = data.length;
+    const done = data.filter(c=>state[c.id]).length;
+    const byArea = {fund:{t:0,d:0}, disc:{t:0,d:0}, libre:{t:0,d:0}};
+    data.forEach(c=>{ byArea[c.area].t += c.cr; if(state[c.id]) byArea[c.area].d += c.cr; });
+
+    const el = document.getElementById('progress');
+    el.innerHTML = `
+      <span><strong>${done}/${total}</strong> materias completadas</span>
+      <span>Fundamentación: <strong>${byArea.fund.d}</strong>/<strong>${byArea.fund.t}</strong> créditos</span>
+      <span>Disciplinar: <strong>${byArea.disc.d}</strong>/<strong>${byArea.disc.t}</strong> créditos</span>
+      <span>Libre elección: <strong>${byArea.libre.d}</strong>/<strong>${byArea.libre.t}</strong> créditos</span>
+    `;
+  }
+  renderProgress();
+
+  // Export / Import / Reset
+  const btnExport = document.getElementById('btn-export');
+  const btnImport = document.getElementById('btn-import');
+  const btnReset  = document.getElementById('btn-reset');
+
+  btnExport.addEventListener('click', ()=>{
+    const payload = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+    const txt = `Progreso malla (copia y guarda este texto):\n\n${payload}`;
+    prompt('Texto de respaldo (copia para guardar):', payload);
+  });
+
+  btnImport.addEventListener('click', ()=>{
+    const raw = prompt('Pega aquí el texto de respaldo generado por "Exportar progreso"');
+    if(!raw) return;
+    try{
+      const obj = JSON.parse(decodeURIComponent(escape(atob(raw.trim()))));
+      if(typeof obj !== 'object') throw new Error('Formato inválido');
+      Object.keys(obj).forEach(k=> state[k]=!!obj[k]);
+      // Actualiza UI
+      data.forEach(c=>{
+        const el = document.getElementById(c.id);
+        el.classList.toggle('done', !!state[c.id]);
+      });
+      save();
+      renderProgress();
+      alert('Progreso importado.');
+    }catch(e){
+      alert('No se pudo importar: '+ e.message);
+    }
+  });
+
+  btnReset.addEventListener('click', ()=>{
+    if(confirm('¿Borrar todo el progreso guardado en este navegador?')){
+      Object.keys(state).forEach(k=> delete state[k]);
+      localStorage.removeItem(STORAGE_KEY);
+      data.forEach(c=>{
+        const el = document.getElementById(c.id);
+        el.classList.remove('done');
+      });
+      renderProgress();
+    }
+  });
+})();
+</script>
+</body>
+</html>
